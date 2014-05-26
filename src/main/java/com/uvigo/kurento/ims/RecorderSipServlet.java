@@ -18,17 +18,23 @@ package com.uvigo.kurento.ims;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Properties;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.sip.Address;
+import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
@@ -57,6 +63,8 @@ public class RecorderSipServlet extends SipServlet {
 	
 	public static final String TARGET = "file:///tmp/recording";
 	
+	private SipFactory sipFactory;
+	
 	@Autowired
 	private MediaPipelineFactory mpf;
 	private MediaPipeline mp;
@@ -74,6 +82,17 @@ public class RecorderSipServlet extends SipServlet {
 	public void init(ServletConfig servletConfig) throws ServletException {
 		logger.info("the RecorderSipServlet servlet has been started");
 		super.init(servletConfig);
+		try { 			
+			// Getting the Sip factory from the JNDI Context
+			Properties jndiProps = new Properties();			
+			Context initCtx = new InitialContext(jndiProps);
+			Context envCtx = (Context) initCtx.lookup("java:comp/env");
+			sipFactory = (SipFactory) envCtx.lookup("sip/com.uvigo.kurento.ims.RecorderSipApplication/SipFactory");
+			logger.info("Sip Factory ref from JNDI : " + sipFactory);
+			
+		} catch (NamingException e) {
+			throw new ServletException("Uh oh -- JNDI problem !", e);			
+		}
 	}
 
 	@Override
@@ -144,5 +163,33 @@ public class RecorderSipServlet extends SipServlet {
 			IOException {
 		SipServletResponse sipServletResponse = request.createResponse(SipServletResponse.SC_OK);
 		sipServletResponse.send();	
+	}
+	
+	protected void doRegister(SipServletRequest req) throws ServletException, IOException {
+		logger.info("Received register request: " + req.getTo());
+		int response = SipServletResponse.SC_OK;
+		SipServletResponse resp = req.createResponse(response);
+		HashMap<String, String> users = (HashMap<String, String>) getServletContext().getAttribute("registeredUsersMap");
+		if(users == null) users = new HashMap<String, String>();
+		getServletContext().setAttribute("registeredUsersMap", users);
+		
+		Address address = req.getAddressHeader("Contact");
+		String fromURI = req.getFrom().getURI().toString();
+		
+		int expires = address.getExpires();
+		if(expires < 0) {
+			expires = req.getExpires();
+		}
+		if(expires == 0) {
+			users.remove(fromURI);
+			logger.info("User " + fromURI + " unregistered");
+		} else {
+			resp.setAddressHeader("Contact", address);
+			users.put(fromURI, address.getURI().toString());
+			logger.info("User " + fromURI + 
+					" registered with an Expire time of " + expires);
+		}				
+						
+		resp.send();
 	}
 }
