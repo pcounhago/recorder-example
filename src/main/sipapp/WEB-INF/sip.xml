@@ -2,20 +2,20 @@
 
 <sip-app>
 	<!-- Archetype Created SIP Application -->
-	<app-name>com.uvigo.kurento.ims.HelloSipWorldApplication</app-name>
+	<app-name>com.uvigo.kurento.ims.RecorderSipApplication</app-name>
 	
 	<servlet-selection>
 		<main-servlet>
-			HelloSipWorldServlet
+			RecorderSipServlet
 		</main-servlet>
 	</servlet-selection>
 
 	<servlet>
-		<servlet-name>HelloSipWorldServlet</servlet-name>
-		<display-name>HelloSipWorldServlet</display-name>
-		<description>Hello SIP World Servlet</description>
+		<servlet-name>RecorderSipServlet</servlet-name>
+		<display-name>RecorderSipServlet</display-name>
+		<description>RTP Recorder SIP Servlet</description>
 		<servlet-class>
-			com.uvigo.kurento.ims.HelloSipWorld
+			com.uvigo.kurento.ims.RecorderSipServlet
 		</servlet-class>
 		<load-on-startup>1</load-on-startup>
 	</servlet>	
