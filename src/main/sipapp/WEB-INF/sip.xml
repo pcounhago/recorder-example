@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<sip-app>
+	<!-- Archetype Created SIP Application -->
+	<app-name>com.uvigo.kurento.ims.HelloSipWorldApplication</app-name>
+	
+	<servlet-selection>
+		<main-servlet>
+			HelloSipWorldServlet
+		</main-servlet>
+	</servlet-selection>
+
+	<servlet>
+		<servlet-name>HelloSipWorldServlet</servlet-name>
+		<display-name>HelloSipWorldServlet</display-name>
+		<description>Hello SIP World Servlet</description>
+		<servlet-class>
+			com.uvigo.kurento.ims.HelloSipWorld
+		</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>	
+</sip-app>
